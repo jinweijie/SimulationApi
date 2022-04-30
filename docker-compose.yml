@@ -1,0 +1,38 @@
+services:
+  simulation_api_1:
+    hostname: simulation-api-1
+    image: jinweijiedocker/simulation-api
+    container_name: simulation_api_container_1
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    networks:
+      - simulation_api_net
+    ports:
+      - "5001:80"
+  simulation_api_2:
+    hostname: simulation-api-2
+    image: jinweijiedocker/simulation-api
+    container_name: simulation_api_container_2
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    networks:
+      - simulation_api_net
+    ports:
+      - "5002:80"
+  simulation_api_3:
+    hostname: simulation-api-3
+    image: jinweijiedocker/simulation-api
+    container_name: simulation_api_container_3
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    networks:
+      - simulation_api_net
+    ports:
+      - "5003:80"
+networks:
+  simulation_api_net:
+    name: simulation_api_net
+    driver: bridge
