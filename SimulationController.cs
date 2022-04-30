@@ -84,8 +84,6 @@ public class TestController : ControllerBase
     {
         var tempFile = Path.Combine(Path.GetTempPath(), $"test_file_{Guid.NewGuid().ToString()}");
 
-
-        
         var data = new byte[8192];
         var rng = new Random();
         await using (var stream = System.IO.File.OpenWrite(tempFile))
@@ -105,17 +103,29 @@ public class TestController : ControllerBase
     }
 
     [HttpGet("/{statusCode:int}")]
-    public IActionResult GetStatusCode(int statusCode)
+    public IActionResult ReturnStatusCode(int statusCode)
     {
         return StatusCode(statusCode);
     }
     
     [HttpGet("exception")]
-    public IActionResult GetException()
+    public IActionResult Exception()
     {
-        throw new Exception("This is an exception.");
+        throw new Exception("Exception simulation.");
     }
-
+    
+    [HttpGet("exit")]
+    public void Exit()
+    {
+        Environment.Exit(0);
+    }
+    
+    [HttpGet("crash")]
+    public void Crash()
+    {
+        Environment.FailFast("Application crash simulation.");
+    }
+    
     private dynamic GetSystemInfo()
     {
         var info = new
