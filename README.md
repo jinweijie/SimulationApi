@@ -15,7 +15,7 @@ You may use this application to test your microservices deployment environment, 
 
 ## Run with Docker Compose in 10 seconds
 1. Ensure you have Docker and Docker Compose installed. If not you may use [this repo](https://github.com/jinweijie/install-docker-and-compose) to install Docker and Docker Compose with just one command.
-2. Clone this repository `git clone git@github.com:jinweijie/SimulationApi.git` and `cd SimulationApi`.
+2. Clone this repository `git clone https://github.com/jinweijie/SimulationApi.git` and `cd SimulationApi`.
 3. Since there is the [docker-compose.yml](https://github.com/jinweijie/SimulationApi/blob/master/docker-compose.yml) file in this repo, you can just run `sudo docker compose up -d` (If you're using the old `docker-compose`, then you need to run `sudo docker-compose up -d` ) and then you will have 3 containers running on port `5001`, `5002`, `5003`.
 
 # Available APIs
