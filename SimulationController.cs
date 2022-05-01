@@ -12,10 +12,21 @@ namespace SimulationApi;
 [Route("/")]
 public class TestController : ControllerBase
 {
-    [HttpGet("delay/{seconds:int?}")]
-    public async Task<IActionResult> Delay([FromRoute] int seconds = 3)
+    [HttpGet("delay/{ms:int?}")]
+    public async Task<IActionResult> Delay(int ms = 3000)
     {
-        await Task.Delay(seconds * 1000);
+        await Task.Delay(ms);
+
+        return Ok(GetSystemInfo());
+    }
+    
+    
+    [HttpGet("delay/{msMin:int}/{msMax:int}")]
+    public async Task<IActionResult> DelayMinMax(int msMin = 1000, int msMax = 5000)
+    {
+        var ms = new Random().Next(msMin, msMax);
+
+        await Task.Delay(ms);
 
         return Ok(GetSystemInfo());
     }
@@ -108,7 +119,13 @@ public class TestController : ControllerBase
         return StatusCode(statusCode);
     }
 
-    [HttpGet("exception/{probability:int?}")]
+    [HttpGet("exception")]
+    public IActionResult Exception()
+    {
+        throw new Exception("Exception simulation.");
+    }
+    
+    [HttpGet("exception/{probability:int}")]
     public IActionResult ExceptionRandom(int probability = 50)
     {
         var gen = new Random();
@@ -119,19 +136,13 @@ public class TestController : ControllerBase
         return Ok(GetSystemInfo());
     }
 
-    [HttpGet("exception")]
-    public IActionResult Exception()
-    {
-        throw new Exception("Exception simulation.");
-    }
-
     [HttpGet("crash")]
     public void Crash()
     {
         Environment.FailFast("Application crash simulation.");
     }
 
-    [HttpGet("crash/{probability:int?}")]
+    [HttpGet("crash/{probability:int}")]
     public IActionResult CrashRandom(int probability = 50)
     {
         var gen = new Random();
@@ -147,6 +158,8 @@ public class TestController : ControllerBase
     {
         Environment.Exit(0);
     }
+    
+    #region Helper Methods
     
     private dynamic GetSystemInfo()
     {
@@ -207,4 +220,6 @@ public class TestController : ControllerBase
             .FirstOrDefault(_ => _.AddressFamily == AddressFamily.InterNetworkV6)
             ?.ToString();
     }
+    
+    #endregion
 }
