@@ -12,15 +12,15 @@ namespace SimulationApi;
 [Route("/")]
 public class TestController : ControllerBase
 {
-    [HttpGet("/delay/{seconds:int}")]
-    public async Task<IActionResult> Delay([FromRoute] int seconds = 10)
+    [HttpGet("delay/{seconds:int?}")]
+    public async Task<IActionResult> Delay([FromRoute] int seconds = 3)
     {
         await Task.Delay(seconds * 1000);
 
         return Ok(GetSystemInfo());
     }
 
-    [HttpGet("/cpu/{seconds:int}/{percentage:int}")]
+    [HttpGet("cpu/{seconds:int?}/{percentage:int?}")]
     public IActionResult Cpu(int seconds = 10, int percentage = 100)
     {
         var timeControl = new Stopwatch();
@@ -56,21 +56,21 @@ public class TestController : ControllerBase
         return Ok(GetSystemInfo());
     }
 
-    [HttpGet("/memory/{seconds:int}/{sizeInM:int}")]
-    public async Task<IActionResult> Memory(int seconds = 10, int sizeInM = 1024 )
+    [HttpGet("memory/{seconds:int?}/{sizeInM:int?}")]
+    public async Task<IActionResult> Memory(int seconds = 10, int sizeInM = 1024)
     {
         var m = 1024 * 1024;
         var bs = new byte[m];
-        
+
         var ps = new List<IntPtr>();
         for (var i = 0; i < sizeInM; i++)
         {
             var p = Marshal.AllocHGlobal(m);
             Marshal.Copy(bs, 0, p, bs.Length);
-            
+
             ps.Add(p);
         }
-        
+
         await Task.Delay(seconds * 1000);
 
         foreach (var ptr in ps)
@@ -79,7 +79,7 @@ public class TestController : ControllerBase
         return Ok(GetSystemInfo());
     }
 
-    [HttpGet("/disk/{seconds:int}/{sizeInM:int}")]
+    [HttpGet("disk/{seconds:int?}/{sizeInM:int?}")]
     public async Task<IActionResult> Disk(int seconds = 10, int sizeInM = 1024)
     {
         var tempFile = Path.Combine(Path.GetTempPath(), $"test_file_{Guid.NewGuid().ToString()}");
@@ -94,36 +94,58 @@ public class TestController : ControllerBase
                 stream.Write(data, 0, data.Length);
             }
         }
-        
+
         await Task.Delay(seconds * 1000);
-        
+
         System.IO.File.Delete(tempFile);
-        
+
         return Ok(GetSystemInfo());
     }
 
-    [HttpGet("/{statusCode:int}")]
+    [HttpGet("{statusCode:int}")]
     public IActionResult ReturnStatusCode(int statusCode)
     {
         return StatusCode(statusCode);
     }
-    
+
+    [HttpGet("exception/{probability:int?}")]
+    public IActionResult ExceptionRandom(int probability = 50)
+    {
+        var gen = new Random();
+
+        if (gen.Next(100) < probability)
+            throw new Exception($"Exception simulation by {probability}% chance.");
+
+        return Ok(GetSystemInfo());
+    }
+
     [HttpGet("exception")]
     public IActionResult Exception()
     {
         throw new Exception("Exception simulation.");
     }
-    
-    [HttpGet("exit")]
-    public void Exit()
-    {
-        Environment.Exit(0);
-    }
-    
+
     [HttpGet("crash")]
     public void Crash()
     {
         Environment.FailFast("Application crash simulation.");
+    }
+
+    [HttpGet("crash/{probability:int?}")]
+    public IActionResult CrashRandom(int probability = 50)
+    {
+        var gen = new Random();
+
+        if (gen.Next(100) < probability)
+            Environment.FailFast($"Crash simulation by {probability}% chance.");
+
+        return Ok(GetSystemInfo());
+    }
+
+    [HttpGet("exit")]
+    public void Exit()
+    {
+        Environment.Exit(0);
     }
     
     private dynamic GetSystemInfo()
@@ -144,11 +166,11 @@ public class TestController : ControllerBase
 
         return info;
     }
-    
+
     private string GetNetCoreVersion()
     {
         var assembly = typeof(System.Runtime.GCSettings).GetTypeInfo().Assembly;
-        var assemblyPath = assembly.Location.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
+        var assemblyPath = assembly.Location.Split(new[] {'/', '\\'}, StringSplitOptions.RemoveEmptyEntries);
         var netCoreAppIndex = Array.IndexOf(assemblyPath, "Microsoft.NETCore.App");
         if (netCoreAppIndex > 0 && netCoreAppIndex < assemblyPath.Length - 2)
             return assemblyPath[netCoreAppIndex + 1];
@@ -166,19 +188,19 @@ public class TestController : ControllerBase
             .GetCustomAttribute<TargetFrameworkAttribute>()?
             .FrameworkName;
     }
-    
+
     private string? GetAllIpAddresses()
     {
         return string.Join(",", Dns.GetHostAddresses(Dns.GetHostName()).Select(_ => _.ToString()));
     }
-    
+
     private string? GetIpAddressV4()
     {
         return Dns.GetHostEntry(Dns.GetHostName()).AddressList
             .FirstOrDefault(_ => _.AddressFamily == AddressFamily.InterNetwork)
             ?.ToString();
     }
-    
+
     private string? GetIpAddressV6()
     {
         return Dns.GetHostEntry(Dns.GetHostName()).AddressList
