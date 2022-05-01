@@ -13,7 +13,7 @@ RUN dotnet publish -c Release -o out
 
 ############################################ runtime api ##########################################
 
-FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS runtime-api
+FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine AS runtime-api
 WORKDIR /app
 COPY --from=build-api /app/out ./
 ENTRYPOINT ["dotnet", "SimulationApi.dll"]
