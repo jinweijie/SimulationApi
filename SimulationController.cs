@@ -4,14 +4,31 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using System.Text.Json;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Controllers;
 
 namespace SimulationApi;
 
 [ApiController]
 [Route("/")]
-public class TestController : ControllerBase
+public class SimulationController : ControllerBase
 {
+    private readonly IEnumerable<EndpointDataSource> _endpointSources;
+ 
+    public SimulationController(IEnumerable<EndpointDataSource> endpointSources
+    )
+    {
+        _endpointSources = endpointSources;
+    }
+    
+    [HttpGet]
+    public IActionResult Get()
+    {
+        return Ok(GetSystemInfo());
+    }
+    
     [HttpGet("delay/{ms:int?}")]
     public async Task<IActionResult> Delay(int ms = 3000)
     {
@@ -174,6 +191,10 @@ public class TestController : ControllerBase
             DotNetCoreVersion = GetNetCoreVersion(),
             AspNetCoreVersion = GetAspNetCoreVersion(),
             AspNetCoreEnvironment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"),
+            Endpoints = GetEndpoints(),
+            RequestHeaders = GetRequestHeaders(),
+            RequestIp = GetRequestIp(),
+            RequestPath = Request.GetEncodedUrl(),
             Now = DateTimeOffset.Now.ToString(),
         };
 
@@ -202,9 +223,9 @@ public class TestController : ControllerBase
             .FrameworkName;
     }
 
-    private string? GetAllIpAddresses()
+    private List<string> GetAllIpAddresses()
     {
-        return string.Join(",", Dns.GetHostAddresses(Dns.GetHostName()).Select(_ => _.ToString()));
+        return Dns.GetHostAddresses(Dns.GetHostName()).Select(_ => _.ToString()).ToList();
     }
 
     private string? GetIpAddressV4()
@@ -219,6 +240,45 @@ public class TestController : ControllerBase
         return Dns.GetHostEntry(Dns.GetHostName()).AddressList
             .FirstOrDefault(_ => _.AddressFamily == AddressFamily.InterNetworkV6)
             ?.ToString();
+    }
+    
+    private List<string> GetEndpoints()
+    {
+        var endpoints = _endpointSources
+            .SelectMany(es => es.Endpoints)
+            .OfType<RouteEndpoint>();
+        
+        return endpoints.Select(e => $"/{e.RoutePattern.RawText?.TrimStart('/')}").ToList();
+    }
+
+    private Dictionary<string, string> GetRequestHeaders()
+    {
+        var requestHeaders = new Dictionary<string, string>();
+        
+        foreach (var (key, value) in Request.Headers)
+            requestHeaders.Add(key, value);
+        
+        return requestHeaders;
+    }
+
+    private dynamic GetRequestIp()
+    {
+        var xForwardedFor = Request.Headers["X-Forwarded-For"].ToString();
+        var xForwardedProto = Request.Headers["X-Forwarded-Proto"].ToString();
+        var xForwardedHost = Request.Headers["X-Forwarded-Host"].ToString();
+        var xRealIp = Request.Headers["X-Real-IP"].ToString();
+        var dotNetCoreIp = Request.HttpContext.Connection.RemoteIpAddress?.ToString();
+
+        var ips = new
+        { 
+            xForwardedFor,
+            xForwardedProto,
+            xForwardedHost,
+            xRealIp,
+            dotNetCoreIp
+        };
+
+        return ips;
     }
     
     #endregion
