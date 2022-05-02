@@ -266,7 +266,6 @@ public class SimulationController : ControllerBase
         var xForwardedFor = Request.Headers["X-Forwarded-For"].ToString();
         var xForwardedProto = Request.Headers["X-Forwarded-Proto"].ToString();
         var xForwardedHost = Request.Headers["X-Forwarded-Host"].ToString();
-        var xRealIp = Request.Headers["X-Real-IP"].ToString();
         var dotNetCoreIp = Request.HttpContext.Connection.RemoteIpAddress?.ToString();
 
         var ips = new
@@ -274,7 +273,6 @@ public class SimulationController : ControllerBase
             xForwardedFor,
             xForwardedProto,
             xForwardedHost,
-            xRealIp,
             dotNetCoreIp
         };
 
