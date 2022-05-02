@@ -22,6 +22,7 @@ You may use this application to test your microservices deployment environment, 
 
 You need to add your host and port prefix. For example, if you are running this application on `http://localhost:5001`, to use the delay endpoint with parameter 5, the full url will be `http://localhost:5001/delay/5`.
 
+* `/` - Display system information.
 * `/delay/{ms:int?}` - Simulate a slow response with specific milliseconds, default is 3000.
 * `/delay/{msMin:int}/{msMax:int}` - Simulate a slow response with random milliseconds between `msMin` and `msMax`.
 * `/cpu/{seconds:int?}/{percentage:int?}` - Simulate high CPU utilization. For example, to simulate 100% CPU utilization for 5 seconds, you can either access `http://localhost:5001/5/100` with browser or use command line `curl http://localhost:5001/5/100`.
